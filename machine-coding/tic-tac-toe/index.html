@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+    <style>
+      .board .row {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .board .cell {
+        width: 40px;
+        height: 40px;
+        border: 1px solid black;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="board"></div>
+    <div class="game-details">
+      <p>Your turn : <span class="player-name">1</span></p>
+      <p>Game Result : <span class="game-status">Pending...</span></p>
+    </div>
+    <script>
+      const GRID_SIZE = 3;
+      const grid = Array.from({ length: GRID_SIZE }, () =>
+        Array(GRID_SIZE).fill(null)
+      );
+      const boardRef = document.querySelector(".board");
+      const playerNameRef = document.querySelector(".player-name");
+      let playingPiece = "X";
+      let playerName = 1;
+
+      function createBoard() {
+        for (let i = 0; i < GRID_SIZE; i++) {
+          const rowRef = document.createElement("div");
+          rowRef.className = "row";
+
+          for (let j = 0; j < GRID_SIZE; j++) {
+            const cellRef = document.createElement("div");
+            cellRef.className = "cell";
+            cellRef.setAttribute("data-row", i);
+            cellRef.setAttribute("data-cell", j);
+            rowRef.appendChild(cellRef);
+          }
+          boardRef.appendChild(rowRef);
+        }
+      }
+
+      function addListener() {
+        boardRef.addEventListener("click", handleClick);
+      }
+
+      function handleClick(e) {
+        const target = e.target;
+
+        if (target.classList.contains("cell")) {
+          const row = target.dataset.row;
+          const cell = target.dataset.cell;
+          if (!isMoveValid(row, cell)) {
+            return;
+          }
+          target.innerText = playingPiece;
+          updateGrid(row, cell, playingPiece);
+
+          if (isPlayerWon(row, cell)) {
+            updateGameResult();
+            boardRef.removeEventListener("click", handleClick); // Disable further clicks
+          } else {
+            changePlayerTurn();
+          }
+        }
+      }
+
+      function changePlayerTurn() {
+        playingPiece = playingPiece === "X" ? "O" : "X";
+        playerName = playerName == 1 ? 2 : 1;
+        playerNameRef.innerText = playerName;
+      }
+
+      function updateGrid(row, col, value) {
+        if (grid[row][col] !== null) {
+          return;
+        }
+        grid[row][col] = value;
+      }
+
+      // TC: O(GRID_SIZE)
+      function isPlayerWon(row, col) {
+        const horizontal = checkLine(grid[row]);
+
+        const colToArr = grid.map((data) => data[col]);
+        const vertical = checkLine(colToArr);
+
+        const diagToArr = grid.map((data, i) => data[i]);
+        const diagonal = checkLine(diagToArr);
+
+        const reverseDiagToArr = grid.map((data, i) => data[GRID_SIZE - i - 1]);
+        const reverseDiagonal = checkLine(reverseDiagToArr);
+
+        return horizontal || vertical || diagonal || reverseDiagonal;
+      }
+
+      function checkLine(arr) {
+        return arr.every((val) => val === playingPiece);
+      }
+
+      function updateGameResult() {
+        const gameStatusRef = document.querySelector(".game-status");
+        gameStatusRef.innerText = `Congratulations Player ${playerName} has Won!`;
+      }
+
+      //   prevents moves on already filled cell
+      function isMoveValid(row, col) {
+        if (grid[row][col] !== null) {
+          return false;
+        }
+        return true;
+      }
+
+      createBoard();
+      addListener();
+    </script>
+  </body>
+</html>
